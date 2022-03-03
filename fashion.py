@@ -33,3 +33,31 @@ import numpy as np
 
 figures = {'im'+str(i): load_image(row.image) for i, row in df.sample(6).iterrows()}
 plot_figures(figures, 2, 3)
+plt.figure(figsize=(7,20))
+df.articleType.value_counts().sort_values().plot(kind='barh')
+import tensorflow as tf
+import keras
+from keras import Model
+from tensorflow.keras.applications.resnet50 import ResNet50
+from keras.preprocessing import image
+from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
+from keras.layers import GlobalMaxPooling2D
+tf.__version__
+img_width, img_height, _ = 224, 224, 3
+base_model = ResNet50(weights='imagenet', 
+                      include_top=False, 
+                      input_shape = (img_width, img_height, 3))
+base_model.trainable = False
+
+model = keras.Sequential([
+    base_model,
+    GlobalMaxPooling2D()
+])
+
+model.summary()
+def get_embedding(model, img_name):
+    img = image.load_img(img_path(img_name), target_size=(img_width, img_height))
+    x   = image.img_to_array(img)
+    x   = np.expand_dims(x, axis=0)
+    x   = preprocess_input(x)
+    return model.predict(x).reshape(-1)
