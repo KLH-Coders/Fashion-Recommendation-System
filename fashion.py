@@ -61,3 +61,35 @@ def get_embedding(model, img_name):
     x   = np.expand_dims(x, axis=0)
     x   = preprocess_input(x)
     return model.predict(x).reshape(-1)
+emb = get_embedding(model, df.iloc[0].image)
+emb.shape
+df.shape
+%%time
+df_sample      = df
+map_embeddings = df_sample['image'].apply(lambda img: get_embedding(model, img))
+df_embs        = map_embeddings.apply(pd.Series)
+
+print(df_embs.shape)
+df_embs.head()
+df
+from sklearn.metrics.pairwise import pairwise_distances
+cosine_sim = 1-pairwise_distances(df_embs, metric='cosine')
+cosine_sim[:4, :4]
+indices = pd.Series(range(len(df)), index=df.index)
+indices
+def get_recommender(idx, df, top_n = 5):
+    sim_idx    = indices[idx]
+    sim_scores = list(enumerate(cosine_sim[sim_idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    sim_scores = sim_scores[1:top_n+1]
+    idx_rec    = [i[0] for i in sim_scores]
+    idx_sim    = [i[1] for i in sim_scores]
+    
+    return indices.iloc[idx_rec].index, idx_sim
+
+get_recommender(2993, df, top_n = 5)
+idx_ref = 1855
+idx_rec, idx_sim = get_recommender(idx_ref, df, top_n = 6)
+plt.imshow(cv2.cvtColor(load_image(df.iloc[idx_ref].image), cv2.COLOR_BGR2RGB))
+figures = {'im'+str(i): load_image(row.image) for i, row in df.loc[idx_rec].iterrows()}
+plot_figures(figures, 2, 3)
