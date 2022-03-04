@@ -1,4 +1,18 @@
-
+import pyspark
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import numpy as np
+import pandas as pd
+import os
+path = '/content/drive/MyDrive/fashion-dataset/'
+filetups = [(r,f) for r,d,f in os.walk(path)]
+print([i+'/'+k for i,j in filetups for k in j])
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName('FRS').getOrCreate()
+spark
+df_pyspark = spark.read.option('headear','true').csv(path+ "/styles.csv", inferSchema=True).limit(5000)
 df_pyspark.show()
 df_pyspark.printSchema()
 df_pyspark.head(3)
